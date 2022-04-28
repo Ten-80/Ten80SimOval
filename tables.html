@@ -1,0 +1,246 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'JetBrains Mono', serif;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 4px;
+        }
+
+        a:link {
+            color: white;
+        }
+
+        /* visited link */
+        a:visited {
+            color: white;
+        }
+
+        /* mouse over link */
+        a:hover {
+            color: white;
+        }
+
+        /* selected link */
+        a:active {
+            color: white;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+
+    <!--    <style>-->
+    <!--        td {-->
+    <!--            font-family: "Courier New";-->
+    <!--        }-->
+    <!--    </style>-->
+
+    <script src="./js/vendor/3.6.0_jquery.js"></script>
+    <script src="./js/vendor/jquery.csv.js"></script>
+    <script src="data/races/race_data_headers.js"></script>
+    <script src="data/races/race_data_processor.js"></script>
+    <script>
+        let lastDisplay = "plain";
+
+        function onLoaded() {
+            // buildLapData(allTeamsRaceData, () => {
+            //     presentTables('plain');
+            // });
+
+            document.getElementById('file-input').addEventListener('change', readSingleFile, false);
+        }
+
+        function presentTables(display, hideTimes) {
+            let showTimes = !hideTimes;
+            console.log(showTimes);
+            display ??= lastDisplay;
+            lastDisplay = display;
+
+            /*
+                            let teamData = {
+                                team_id: teamId,
+                                race_id: raceId,
+                                heat_id: heatId,
+                                track_id: 1,
+                                finish_type_id: finishTypeId,
+                                times: lapTimes,
+                                pits: pits,
+                                src: raceFile,
+                            }
+                            lapData.push(teamData);
+
+             */
+            document.getElementById('tables').innerHTML = '';
+
+            if (display === 'plain') {
+                document.body.style.backgroundColor = "#ccc";
+                document.body.style.color = "#000";
+            } else if (display === 'mean') {
+                document.body.style.backgroundColor = "#444";
+                document.body.style.color = "#fff";
+            } else if (display === 'heatmap') {
+                document.body.style.backgroundColor = "#444";
+                document.body.style.color = "#fff";
+            }
+
+            let heatId = 1;
+            for (let raceId in raceData) {
+                raceId = parseInt(raceId);
+                let raceSpec = raceData[raceId];
+                let allTeamData = lapData.filter(teamData => teamData.race_id === raceId && teamData.heat_id === heatId);
+                allTeamData.sort((a, b) => a.team_id < b.team_id ? -1 : 1);
+
+                let times = [];
+                allTeamData.forEach(teamData => {
+                    teamData.times.forEach(time => times.push(time))
+                });
+
+                let popPct = .95;
+                times.sort((a, b) => a < b ? -1 : 1);
+                let cropSize = ~~(times.length * ((1 - popPct) / 2));
+                times = times.slice(cropSize, times.length - cropSize);
+
+                let numTimes = times.length;
+                let totalTime = times.reduce((acc, time) => acc + time, 0);
+                let meanLap = totalTime / numTimes;
+                let totalSquared = times.reduce((acc, time) => acc + (time - meanLap) * (time - meanLap), 0);
+                let meanSquaredLaps = totalSquared / numTimes;
+                let stdev = Math.sqrt(meanSquaredLaps);
+
+                console.log("All std dev range:     std dev = " + stdev);
+
+                // console.log('count', times.length);
+                // console.log('sum', totalTime);
+                // console.log('mean', meanLap)
+                // console.log('sum2', totalSquared)
+                // console.log('variance', meanSquaredLaps);
+                // console.log('stddev', stdev);
+
+                let stdMin = meanLap - stdev;
+                let stdMax = meanLap + stdev;
+
+                let rows = [];
+                let maxRowLen = 0;
+                // let comma = "";
+                allTeamData.forEach(teamData => {
+                    if (teamData.times.length === 0) return;
+
+                    let teamName = teamNamesById[teamData.team_id] ?? "CSV";
+                    let row = `<td nowrap>${teamName} (${teamData.team_id})</td>`;
+                    teamData.times.forEach((time, idx) => {
+                        let style = '';
+                        if (display === 'plain') {
+                            if (teamData.pits[idx] >= 1) {
+                                style = 'bgcolor="#000" style="color:#fff"';
+                            } else {
+                                if (time < stdMin) {
+                                    style = 'bgcolor="#faa" style="color:#000"';
+                                } else if (time > stdMax) {
+                                    style = 'bgcolor="#999" style="color:#000"';
+                                } else {
+                                    style = 'bgcolor="#fff" style="color:#000"';
+                                }
+                            }
+                        } else if (display === 'mean') {
+                            let frac = Math.round((time - stdMin) / (stdev * 2));
+                            frac = Math.max(0, Math.min(1, frac));
+                            let r = ~~(128 - 128 * frac) + 127;
+                            let b = ~~(128 * frac) + 127;
+                            let g = Math.min(r, b);
+                            if (teamData.pits[idx] >= 1) {
+                                style = `style="background-color: rgba(${r}, ${g}, ${b}, 1); color:#000"`;
+                            } else {
+                                style = `style="background-color: rgba(${r}, ${g}, ${b}, 1); color:#000"`;
+                            }
+                        } else if (display === 'heatmap') {
+                            let frac = (time - stdMin) / (stdev * 2);
+                            frac = Math.max(0, Math.min(1, frac));
+                            let r = ~~(128 - 128 * frac) + 127;
+                            let b = ~~(128 * frac) + 127;
+                            let g = Math.max(r, b);//r;//Math.min(r, b);
+                            if (teamData.pits[idx] >= 1) {
+                                style = `style="background-color: rgba(${r}, ${g}, ${b}, 1); color:#000"`;
+                            } else {
+                                style = `style="background-color: rgba(${r}, ${g}, ${b}, 1); color:#000"`;
+                            }
+                        }
+
+                        if (showTimes) {
+                            row += `<td ${style} align="right">${time.toFixed(2)}</td>`;
+                        } else {
+                            row += `<td ${style} align="right">&nbsp;</td>`;
+                        }
+
+                        // comma += time + ", ";
+
+                    });
+                    maxRowLen = Math.max(maxRowLen, teamData.times.length);
+
+                    rows.push(row);
+                });
+
+                let teamHeader = `<td>TEAM</td>`;
+                if (showTimes) {
+                    for (let i = 0; i < maxRowLen; ++i) {
+                        teamHeader += `<td style="width:55px" align="center">${i + 1}</td>`;
+                    }
+                }
+                rows.unshift(teamHeader);
+
+                let lapHeader = `<td></td><td colspan="${maxRowLen}">LAP #&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mean ${meanLap.toFixed(2)}&nbsp;&nbsp; stddev ${stdev.toFixed(2)} mid ${popPct * 100}% population</td>`;
+                rows.unshift(lapHeader);
+
+                let raceHeader = `<td></td><td colspan="${maxRowLen}">${raceSpec.title} - Heat ${heatId}</td><td>&nbsp;</td>`;
+                rows.unshift(raceHeader);
+
+                let rowsHtml = '<tr>' + rows.join('</tr><tr>') + '</tr>';
+                let tableHtml = `<table cellpadding="0" cellspacing="1">${rowsHtml}</table>`;
+
+                let div = document.createElement('div');
+                div.innerHTML = tableHtml;
+                document.getElementById('tables').appendChild(div);
+                document.getElementById('tables').innerHTML += "<br><br>";
+            }
+        }
+
+        function readSingleFile(e) {
+            let file = e.target.files[0];
+            if (!file) {
+                return;
+            }
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                let contents = e.target.result;
+                buildLapData2(contents);
+                presentTables('plain');
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</head>
+
+<body onload="onLoaded()" bgcolor="#ccc">
+<div style="background-color: #555555;padding:5px"><label for="file-input" class="custom-file-upload" style="color:white">Load CSV</label> | <a href="javascript:presentTables('plain');">Plain</a> | <a
+        href="javascript:presentTables('mean');">Mean</a> | <a href="javascript:presentTables('heatmap');">Heatmap</a></div>
+
+
+<input type="file" id="file-input" style="border: none"/>
+<br>
+<br>
+<div id="tables"></div>
+
+</body>
+
+</html>

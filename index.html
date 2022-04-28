@@ -1,0 +1,250 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Dots';
+            /*src: URL('./css/led_counter-7.ttf') format('truetype');*/
+            /*src: URL('./css/high-speed.regular.ttf') format('truetype');*/
+            src: url('./css/DotsAllForNow.ttf') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'Pix';
+            /*src: URL('./css/led_counter-7.ttf') format('truetype');*/
+            /*src: URL('./css/high-speed.regular.ttf') format('truetype');*/
+            src: url('./css/mister_pixel.ttf') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'Tix';
+            /*src: URL('./css/led_counter-7.ttf') format('truetype');*/
+            /*src: URL('./css/high-speed.regular.ttf') format('truetype');*/
+            src: url('./css/ticketing.regular.ttf') format('truetype');
+        }
+
+        .timeDigit {
+            width: 70px;
+            /*height:90px;*/
+            /*padding:20px;*/
+            font-family: Dots;
+            font-size: 90px;
+            vertical-align: middle;
+            align-content: center;
+            background-color: black;
+            color: #ffff80;
+            display: inline-block;
+            text-align: center;
+        }
+
+        input[type="button"]
+            /* Or better yet try giving an ID or class if possible*/
+        {
+            border: 0;
+            background-color: greenyellow;
+            /*background: none;*/
+            box-shadow: none;
+            border-radius: 0px;
+            font-family: Dots;
+            font-size: 30px;
+            padding: 10px;
+        }
+
+        label {
+            font-family: 'JetBrains Mono', serif;
+            font-size: 13px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--  <link rel="preconnect" href="https://fonts.gstatic.com">-->
+    <!--  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet">-->
+
+    <!--  <link rel="preconnect" href="https://fonts.gstatic.com">-->
+    <!--  <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:ital,wght@1,300&display=swap" rel="stylesheet">-->
+
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+
+    <link rel="apple-touch-icon" href="icon.png">
+    <!-- Place favicon.ico in the root directory -->
+
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/main.css">
+    <meta name="theme-color" content="#fafafa">
+
+    <script src="./js/vendor/1.3.2_createjs.js"></script>
+    <script src="./js/vendor/zim_cat-3.js"></script>
+    <script src="./js/vendor/math.js"></script>
+    <script src="./js/vendor/three.js"></script>
+<!--    <script type="text/JavaScript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js" ></script>-->
+    <script src="./js/vendor/3.6.0_jquery.js"></script>
+    <script src="./js/vendor/jquery.csv.js"></script>
+</head>
+
+<body onload="onLoaded()" bgcolor="#bbb8bb">
+
+<!--<label for="file-input" class="custom-file-upload" style="color:white">Load CSV</label></div>-->
+<input type="file" id="file-input" style="border: none"/>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<table width="100%">
+    <tr>
+        <td align="center">
+            <table>
+                <tr>
+                    <td>
+                        <canvas id="canvas" width="800" height="1024" style="background-color: cadetblue"></canvas>
+                    </td>
+                    <td>
+                        <canvas id="totemCanvas" width="425" height="1024" style="background-color: skyblue;"></canvas>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+        </td>
+    </tr>
+    <tr>
+        <td align="center" style="padding-left:7px">
+            <canvas id="statsCanvas" width="1600" height="400" style="background-color: #bbb8bb"></canvas>
+        </td>
+    </tr>
+</table>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<!--<script src="js/vendor/modernizr-3.11.2.min.js"></script>-->
+<!--<script src="js/plugins.js"></script>-->
+<script src="js/main.js"></script>
+<script src="data/races/race_data_headers.js"></script>
+<script src="data/races/race_data_processor.js"></script>
+<script src="js/centerline.js"></script>
+<script src="js/leaderboard.js"></script>
+
+<!-- LINES TO CHANGE TO CHANGE THE TRACK FOR THE SIM -->
+<!-- <script src="data/tracks/racing_lines.js"></script> -->
+<!-- <script src="data/tracks/racing_lines_oval.js"></script> -->
+<script src="data/tracks/racing_lines_march22.js"></script>
+<!--<script src="data/tracks/ten80_track.js"></script>-->
+<!-- <script src="data/tracks/ten80_track_final.js"></script> -->
+<!-- <script src="js/racer.js"></script> -->
+<!-- <script src="js/racer_oval.js"></script> -->
+<script src="js/racer_march22.js"></script>
+
+
+<script>
+    function onLoaded() {
+        buildLapData2(primerRaceData);
+        setupRace();
+
+        document.getElementById('file-input').addEventListener('change', readSingleFile);
+
+        let pidx = 2500;
+
+        document.addEventListener("keypress", function onEvent(event) {
+            if (keypressSetsRaceIndex || keypressSetsHeatIndex) {
+                if (isNaN(parseInt(event.key))) {
+                    highlightRaceIndex(false);
+                    highlightHeatIndex(false);
+                } else {
+                    if (keypressSetsHeatIndex) {
+                        setHeatIndex(parseInt(event.key));
+                    } else if (keypressSetsRaceIndex) {
+                        setRaceIndex(parseInt(event.key));
+                    }
+                }
+                keypressSetsHeatIndex = false;
+                keypressSetsRaceIndex = false;
+            } else {
+                if (event.key === 'r') {
+                    highlightRaceIndex(true);
+                    keypressSetsRaceIndex = true;
+                } else if (event.key === 'h') {
+                    highlightHeatIndex(true);
+                    keypressSetsHeatIndex = true;
+                } else {
+                    highlightRaceIndex(false);
+                    highlightHeatIndex(false);
+                    if (event.key === 'l') {
+                        drawRacingLines();
+                    } else if (event.key === 'p') {
+                        console.log("plotting" + pidx);
+                        plotLinePos(pidx);
+                        ++pidx;
+                    } else if (event.key === 'x') {
+                        resetRace();
+                        // setupRace();
+                        // location.reload();
+                    } else if (event.key === 's') {
+                        if (raceStarted) return;
+                        runRace();
+                    } else {
+                        let speed = {'1': 1, '2': 2, '3': 5, '4': 10, '5': 30, '6': 60}[event.key];
+                        if (!isNaN(speed)) timeSpeed = speed;
+                    }
+                }
+            }
+        });
+    }
+
+    function readSingleFile(e) {
+        raceFinished = true;
+
+        let inputButton = e.target;
+        let file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+        let reader = new FileReader();
+        reader.onload = function (e) {
+            let contents = e.target.result;
+            inputButton.input = null;
+            buildLapData2(contents);
+            setupRace();
+        };
+        reader.readAsText(file);
+    }
+
+</script>
+</body>
+
+</html>
